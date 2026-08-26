@@ -31,7 +31,7 @@ public static class TelemetryThresholds
             return BatteryStatus.Critical;
         }
 
-        if (batteryPercent <= LowBatteryPercent)
+        if (batteryPercent < LowBatteryPercent)
         {
             return BatteryStatus.Low;
         }
