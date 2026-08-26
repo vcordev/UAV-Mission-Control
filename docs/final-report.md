@@ -6,8 +6,10 @@ An original, independent WPF desktop application — **UAV Mission Control** —
 connection management, mission control (start/pause/resume/stop), live telemetry (battery,
 signal, GPS, altitude, speed), threshold-based warnings, and an event/log history, governed by an
 explicit two-part state machine. It is not a copy of any real product; it exists specifically to
-demonstrate the QA skills asked for in the target job posting (TEKEVER, Mid-Level QA Engineer —
-see `docs/architecture.md` intro for the exact requirements this maps to) end-to-end: building
+demonstrate, end-to-end, the skills commonly asked for in Mid-Level QA Engineer roles for
+desktop/WPF applications — test strategy and planning, functional/negative/boundary/regression/
+reliability/performance testing, automated UI testing with tooling appropriate to the platform
+(not a browser-automation tool blindly applied), defect tracking, and CI/CD — by building both
 the system under test *and* the QA program around it.
 
 ## Architecture

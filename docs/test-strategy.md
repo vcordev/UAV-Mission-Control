@@ -77,7 +77,7 @@ hardest to notice:
 
 In scope: `UavMissionControl.Core` (domain logic, telemetry simulation, event logging) and
 `UavMissionControl.App` (WPF ViewModels, Views, and their integration). Out of scope: anything
-outside this repository (this is an independent, original project — not TEKEVER's platform).
+outside this repository (this is an independent, original project, not any real company's platform).
 
 ### 2.2 Entry / exit criteria
 

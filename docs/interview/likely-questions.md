@@ -89,9 +89,9 @@ rather than overstating what it proves.
 
 ## "What don't you know yet that you'd want to learn before starting?"
 
-Real-world Agile/Scrum ceremonies and defect-tracking tooling (Jira, Azure DevOps) specifically at
-TEKEVER — everything in this project's defect docs follows a format I designed myself for clarity,
-not a specific tool's template, and I'd want to adapt quickly to whatever the team actually uses.
-I'd also want to understand what CI infrastructure TEKEVER already has (self-hosted vs.
-GitHub/Azure-hosted runners) since that materially affects whether UI automation "just works" the
-way it does on GitHub-hosted `windows-latest` here.
+Real-world Agile/Scrum ceremonies and whatever defect-tracking tooling a specific team uses (Jira,
+Azure DevOps, etc.) — everything in this project's defect docs follows a format I designed myself
+for clarity, not a specific tool's template, and I'd want to adapt quickly to whatever the team
+actually uses. I'd also want to understand what CI infrastructure the team already has (self-hosted
+vs. GitHub/Azure-hosted runners) since that materially affects whether UI automation "just works"
+the way it does on GitHub-hosted `windows-latest` here.

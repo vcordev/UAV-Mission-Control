@@ -1,8 +1,10 @@
-# UAV Mission Control — TEKEVER QA Portfolio Project
+# UAV Mission Control — QA Engineering Portfolio Project
 
 An original, independent WPF desktop app simulating a UAV Mission Control system, built as a
-portfolio project demonstrating the QA skills asked for in TEKEVER's Mid-Level QA Engineer
-posting — not a copy of, or affiliated with, any TEKEVER product.
+portfolio project demonstrating QA engineering skills for desktop/WPF applications — test
+strategy and planning, functional/negative/boundary/regression/reliability/performance testing,
+automated UI testing with tooling appropriate to the platform, defect tracking, and CI/CD. It is
+not a copy of, or affiliated with, any real company's product.
 
 ## What it is
 
