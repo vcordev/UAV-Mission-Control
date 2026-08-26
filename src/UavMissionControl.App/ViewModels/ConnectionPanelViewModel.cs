@@ -60,6 +60,7 @@ public sealed class ConnectionPanelViewModel : ViewModelBase
             }
 
             _eventLog.Add(LogSeverity.Info, "Telemetry link established.");
+            _stateMachine.ConnectionStateChanged -= OnConnected;
         }
 
         _stateMachine.ConnectionStateChanged += OnConnected;
