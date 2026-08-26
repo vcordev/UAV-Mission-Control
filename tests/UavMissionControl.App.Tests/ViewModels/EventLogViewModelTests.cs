@@ -20,16 +20,19 @@ public class EventLogViewModelTests
     }
 
     [Fact]
-    public void EntryAdded_InsertsNewestFirst()
+    public void EntryAdded_AppendsOldestFirst()
     {
+        // See docs/defects/06: newest-first via Insert(0, ...) was replaced with append-only
+        // (oldest first, view auto-scrolls to the newest) because Insert(0, ...) degraded under
+        // sustained load.
         var eventLog = new EventLog();
         var vm = new EventLogViewModel(eventLog, new ImmediateDispatcher());
 
         eventLog.Add(LogSeverity.Info, "first");
         eventLog.Add(LogSeverity.Info, "second");
 
-        vm.Entries[0].Message.ShouldBe("second");
-        vm.Entries[1].Message.ShouldBe("first");
+        vm.Entries[0].Message.ShouldBe("first");
+        vm.Entries[1].Message.ShouldBe("second");
     }
 
     [Fact]

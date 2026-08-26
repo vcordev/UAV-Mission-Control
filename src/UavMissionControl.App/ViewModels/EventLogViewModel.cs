@@ -14,12 +14,14 @@ public sealed class EventLogViewModel : ViewModelBase
 
         foreach (var entry in eventLog.Entries)
         {
-            Entries.Insert(0, entry);
+            Entries.Add(entry);
         }
 
-        eventLog.EntryAdded += (_, entry) => _dispatcher.Invoke(() => Entries.Insert(0, entry));
+        eventLog.EntryAdded += (_, entry) => _dispatcher.Invoke(() => Entries.Add(entry));
     }
 
-    /// <summary>Newest entry first, so the panel reads top-to-bottom as a live feed.</summary>
+    /// <summary>Oldest entry first (append-only, O(1) per add) with the view auto-scrolling to
+    /// the bottom on each new entry — see docs/defects/06 for why this replaced a newest-first
+    /// Insert(0, ...) that degraded under sustained load.</summary>
     public ObservableCollection<EventLogEntry> Entries { get; } = [];
 }
