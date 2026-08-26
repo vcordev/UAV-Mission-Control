@@ -53,6 +53,23 @@ public class ConnectionPanelViewModelTests
     }
 
     [Fact]
+    public async Task Reconnecting_LogsTelemetryLinkEstablished_ExactlyOncePerConnectCycle()
+    {
+        // Regression guard for docs/defects/04: a per-connect subscription that isn't cleaned
+        // up would make the second reconnect log this message twice, the third log it three
+        // times, etc. Two connect cycles here already exposes that compounding.
+        var eventLog = new EventLog();
+        var stateMachine = new UavStateMachine();
+        var vm = new ConnectionPanelViewModel(stateMachine, eventLog, TimeSpan.Zero);
+
+        await vm.ConnectAsync();
+        vm.DisconnectCommand.Execute(null);
+        await vm.ConnectAsync();
+
+        eventLog.Entries.Count(e => e.Message == "Telemetry link established.").ShouldBe(2);
+    }
+
+    [Fact]
     public async Task Disconnect_FromConnected_TransitionsToDisconnectedAndLogs()
     {
         var stateMachine = new UavStateMachine();

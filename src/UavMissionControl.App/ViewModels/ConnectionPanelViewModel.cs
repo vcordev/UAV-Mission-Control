@@ -49,6 +49,21 @@ public sealed class ConnectionPanelViewModel : ViewModelBase
 
         await Task.Delay(_connectDelay);
 
+        // One-shot: log "link established" the moment this connect cycle actually reaches
+        // Connected, then unsubscribe — otherwise every future reconnect adds another handler
+        // that never goes away, and every subsequent Connected transition fires all of them.
+        void OnConnected(object? sender, ConnectionState state)
+        {
+            if (state != ConnectionState.Connected)
+            {
+                return;
+            }
+
+            _eventLog.Add(LogSeverity.Info, "Telemetry link established.");
+            _stateMachine.ConnectionStateChanged -= OnConnected;
+        }
+
+        _stateMachine.ConnectionStateChanged += OnConnected;
         _stateMachine.TransitionConnection(ConnectionState.Connected);
         _eventLog.Add(LogSeverity.Info, "Connected to UAV.");
     }
