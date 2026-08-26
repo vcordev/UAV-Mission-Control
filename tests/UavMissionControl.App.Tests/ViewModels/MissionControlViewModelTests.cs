@@ -94,6 +94,42 @@ public class MissionControlViewModelTests
     }
 
     [Fact]
+    public void Start_BeginsTheElapsedTimer()
+    {
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+
+        vm.StartCommand.Execute(null);
+
+        vm.IsElapsedTimerRunning.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Pause_StopsTheElapsedTimer()
+    {
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+        vm.StartCommand.Execute(null);
+
+        vm.PauseCommand.Execute(null);
+
+        vm.IsElapsedTimerRunning.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Resume_RestartsTheElapsedTimer()
+    {
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+        vm.StartCommand.Execute(null);
+        vm.PauseCommand.Execute(null);
+
+        vm.ResumeCommand.Execute(null);
+
+        vm.IsElapsedTimerRunning.ShouldBeTrue();
+    }
+
+    [Fact]
     public void Stop_TransitionsToStopped_AndLogsElapsed()
     {
         var eventLog = new EventLog();

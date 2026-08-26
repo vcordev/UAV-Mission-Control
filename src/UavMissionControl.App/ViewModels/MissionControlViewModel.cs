@@ -50,6 +50,10 @@ public sealed class MissionControlViewModel : ViewModelBase
 
     public RelayCommand StopCommand { get; }
 
+    /// <summary>Test seam: DispatcherTimer.IsEnabled reflects Start()/Stop() calls without
+    /// needing a running Dispatcher message loop, so this is directly assertable in unit tests.</summary>
+    internal bool IsElapsedTimerRunning => _elapsedTimer.IsEnabled;
+
     private void Start()
     {
         _elapsed = TimeSpan.Zero;
