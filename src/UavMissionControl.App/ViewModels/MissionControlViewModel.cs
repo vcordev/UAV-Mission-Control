@@ -65,6 +65,7 @@ public sealed class MissionControlViewModel : ViewModelBase
 
     private void Pause()
     {
+        _elapsedTimer.Stop();
         _stateMachine.TransitionMission(MissionState.Paused);
         _eventLog.Add(LogSeverity.Info, "Mission paused.");
     }
