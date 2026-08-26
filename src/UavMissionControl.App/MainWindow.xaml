@@ -1,12 +1,42 @@
-﻿<Window x:Class="UavMissionControl.App.MainWindow"
+<Window x:Class="UavMissionControl.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UavMissionControl.App"
+        xmlns:views="clr-namespace:UavMissionControl.App.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="UAV Mission Control" Height="700" Width="850">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <views:ConnectionPanelView Grid.Row="0" DataContext="{Binding ConnectionPanel}" Margin="0,0,0,8"/>
+        <views:MissionControlView Grid.Row="1" DataContext="{Binding MissionControl}" Margin="0,0,0,8"/>
+        <views:TelemetryDashboardView Grid.Row="2" DataContext="{Binding TelemetryDashboard}" Margin="0,0,0,8"/>
+        <views:WarningsBannerView Grid.Row="3" DataContext="{Binding WarningsBanner}" Margin="0,0,0,8"/>
+
+        <GroupBox Grid.Row="4" Header="QA Test Scenarios" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" Margin="8">
+                <Button x:Name="TriggerLowBatteryButton" Content="Low Battery"
+                        Command="{Binding TriggerLowBatteryCommand}" Width="110" Margin="0,0,4,0"/>
+                <Button x:Name="TriggerCriticalBatteryButton" Content="Critical Battery"
+                        Command="{Binding TriggerCriticalBatteryCommand}" Width="110" Margin="0,0,4,0"/>
+                <Button x:Name="TriggerWeakSignalButton" Content="Weak Signal"
+                        Command="{Binding TriggerWeakSignalCommand}" Width="110" Margin="0,0,4,0"/>
+                <Button x:Name="ClearScenariosButton" Content="Clear"
+                        Command="{Binding ClearScenariosCommand}" Width="80" Margin="0,0,16,0"/>
+                <Button x:Name="SimulateConnectionLossButton" Content="Simulate Connection Loss"
+                        Command="{Binding SimulateConnectionLossCommand}" Width="170"/>
+            </StackPanel>
+        </GroupBox>
+
+        <views:EventLogView Grid.Row="5" DataContext="{Binding EventLog}"/>
     </Grid>
 </Window>

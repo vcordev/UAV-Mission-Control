@@ -1,0 +1,35 @@
+<UserControl x:Class="UavMissionControl.App.Views.WarningsBannerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="100" d:DesignWidth="600">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+    <!--
+        Banners use TextBlock (has a default UI Automation peer) as the automation anchor,
+        not the surrounding Border (Border has no default automation peer in WPF, so a
+        Collapsed/Visible Border alone is invisible to UI Automation / FlaUI).
+    -->
+    <StackPanel>
+        <Border Background="DarkRed" Padding="8" Margin="0,0,0,2"
+                Visibility="{Binding IsEmergencyAbort, Converter={StaticResource BoolToVis}}">
+            <TextBlock x:Name="EmergencyBannerText" Text="EMERGENCY ABORT: connection lost during mission"
+                       Foreground="White" FontWeight="Bold"/>
+        </Border>
+        <Border Background="DarkRed" Padding="8" Margin="0,0,0,2"
+                Visibility="{Binding IsBatteryCritical, Converter={StaticResource BoolToVis}}">
+            <TextBlock x:Name="CriticalBatteryBannerText" Text="CRITICAL BATTERY" Foreground="White" FontWeight="Bold"/>
+        </Border>
+        <Border Background="Orange" Padding="8" Margin="0,0,0,2"
+                Visibility="{Binding IsBatteryLow, Converter={StaticResource BoolToVis}}">
+            <TextBlock x:Name="LowBatteryBannerText" Text="LOW BATTERY" FontWeight="Bold"/>
+        </Border>
+        <Border Background="Orange" Padding="8"
+                Visibility="{Binding IsSignalWeak, Converter={StaticResource BoolToVis}}">
+            <TextBlock x:Name="WeakSignalBannerText" Text="WEAK SIGNAL" FontWeight="Bold"/>
+        </Border>
+    </StackPanel>
+</UserControl>
