@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/UavMissionControl.App/UavMissionControl.App.csproj" />
+    <Project Path="src/UavMissionControl.Core/UavMissionControl.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/UavMissionControl.App.Tests/UavMissionControl.App.Tests.csproj" />
+    <Project Path="tests/UavMissionControl.Core.Tests/UavMissionControl.Core.Tests.csproj" />
+    <Project Path="tests/UavMissionControl.UiAutomation.Tests/UavMissionControl.UiAutomation.Tests.csproj" />
+  </Folder>
+</Solution>
