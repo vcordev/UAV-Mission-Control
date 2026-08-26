@@ -17,7 +17,7 @@ public sealed class EventLogViewModel : ViewModelBase
             Entries.Insert(0, entry);
         }
 
-        eventLog.EntryAdded += (_, entry) => _dispatcher.Invoke(() => Entries.Insert(0, entry));
+        eventLog.EntryAdded += (_, entry) => Entries.Insert(0, entry);
     }
 
     /// <summary>Newest entry first, so the panel reads top-to-bottom as a live feed.</summary>
