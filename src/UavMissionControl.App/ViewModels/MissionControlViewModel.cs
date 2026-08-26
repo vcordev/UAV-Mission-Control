@@ -33,7 +33,7 @@ public sealed class MissionControlViewModel : ViewModelBase
 
         StopCommand = new RelayCommand(
             Stop,
-            () => _stateMachine.MissionState is MissionState.Active or MissionState.Paused);
+            () => _stateMachine.ConnectionState == ConnectionState.Connected);
     }
 
     public MissionState MissionState => _stateMachine.MissionState;

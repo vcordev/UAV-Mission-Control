@@ -68,6 +68,18 @@ public class MissionControlViewModelTests
     }
 
     [Fact]
+    public void Stop_WhenExecutedDespiteInvalidState_ThrowsFromCore()
+    {
+        // Defense in depth: even if a future change lets the Stop button become clickable in a
+        // state where stopping is illegal (see docs/defects/02), the domain must still refuse
+        // the transition rather than corrupting state. This bypasses CanExecute deliberately.
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+
+        Should.Throw<InvalidStateTransitionException>(() => vm.StopCommand.Execute(null));
+    }
+
+    [Fact]
     public void PauseThenResume_ReturnsToActive()
     {
         var vm = Create(out var stateMachine);
