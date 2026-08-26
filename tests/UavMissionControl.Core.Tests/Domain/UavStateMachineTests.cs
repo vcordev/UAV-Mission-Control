@@ -133,6 +133,33 @@ public class UavStateMachineTests
         sm.MissionState.ShouldBe(MissionState.Idle);
     }
 
+    [Fact]
+    public void TerminalStates_Stopped_And_EmergencyAbort_CanTransitionBackToIdle()
+    {
+        // Supporting evidence for docs/defects/07 and docs/defects/08: the state machine
+        // itself is NOT the bug. Both Stopped->Idle and EmergencyAbort->Idle are legal edges
+        // in MissionTransitions. The defect in both cases lives in the App layer, which never
+        // actually calls TransitionMission(Idle) to take this edge after a Stop
+        // (MissionControlViewModel.Stop()) or after a reconnect following an EmergencyAbort
+        // (nowhere at all). See MissionControlViewModelTests.StartCommand_ShouldReenable_AfterStop_DEFECT07
+        // and WarningsBannerViewModelTests.IsEmergencyAbort_ShouldClear_AfterReconnecting_DEFECT08
+        // for the App-layer tests that fail because of that missing call.
+        var stoppedMachine = new UavStateMachine();
+        Connect(stoppedMachine);
+        stoppedMachine.TransitionMission(MissionState.Active);
+        stoppedMachine.TransitionMission(MissionState.Stopped);
+
+        stoppedMachine.CanTransitionMission(MissionState.Idle).ShouldBeTrue();
+
+        var abortMachine = new UavStateMachine();
+        Connect(abortMachine);
+        abortMachine.TransitionMission(MissionState.Active);
+        abortMachine.TransitionConnection(ConnectionState.Disconnected); // forces EmergencyAbort
+
+        abortMachine.MissionState.ShouldBe(MissionState.EmergencyAbort);
+        abortMachine.CanTransitionMission(MissionState.Idle).ShouldBeTrue();
+    }
+
     private static void Connect(UavStateMachine sm)
     {
         sm.TransitionConnection(ConnectionState.Connecting);

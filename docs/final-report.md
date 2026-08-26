@@ -33,10 +33,16 @@ techniques each mapped to where it's actually used. Full detail: `docs/test-stra
 
 ## Tests
 
-**106 automated tests, all green:** 55 in `Core.Tests`, 39 in `App.Tests`, 12 in
-`UiAutomation.Tests` (FlaUI, driving the real built exe). Plus one documented manual test case
-(`docs/test-cases/TC-001-happy-path-mission-lifecycle.md`), executed against the running app and
-screenshot-verified.
+**111 automated tests: 107 green + 4 intentionally red.** 56 in `Core.Tests` (all passing), 41
+in `App.Tests` (39 passing + 2 intentionally failing), 14 in `UiAutomation.Tests` (12 passing +
+2 intentionally failing; FlaUI, driving the real built exe). Plus three documented manual test
+cases (`docs/test-cases/TC-001` through `TC-003`), executed against the running app.
+
+The 4 intentionally-failing tests are not a build problem — they are permanent, automated proof
+of the 2 known, deliberately-unresolved defects below (#07, #08), tagged
+`[Trait("Category","KnownDefect")]` and excluded from the CI gate by filter (not skipped, not
+hidden — see `docs/test-strategy.md`). `dotnet test --filter "Category!=KnownDefect"`
+reproduces the clean 107/107 green run.
 
 ## Bugs found and fixed
 
@@ -51,6 +57,24 @@ with repro/root-cause/fix/regression-coverage in `docs/defects/`:
 | 04 | Reconnect handler leak (duplicate logs) | Regression testing | Minor/P3 |
 | 05 | Pause doesn't stop elapsed timer | Functional testing (timer-state seam) | Major/P2 |
 | 06 | Event log O(n) prepend | Performance testing | Minor/P3 |
+
+## Bugs found and deliberately left unresolved
+
+Two more defects were found — the same way real ones usually are, by manual exploratory testing
+that pushed one step past the existing happy-path scripts — and are being kept unfixed on
+purpose, each backed by regression tests that fail by design, to demonstrate that "found but not
+yet fixed" doesn't have to mean "undocumented and untracked":
+
+| # | Defect | Found by | Severity/Priority | Automated proof |
+|---|---|---|---|---|
+| 07 | Stop Mission never returns to Idle — Start permanently disabled after the first Stop | Manual exploratory testing (past `TC-001`) | Major/P2 | `MissionControlViewModelTests` + `KnownDefectsUiTests` (both red) |
+| 08 | Emergency Abort banner never clears after a successful reconnect | Manual exploratory testing (past `RegressionUiTests`) | Major/P2 | `WarningsBannerViewModelTests` + `KnownDefectsUiTests` (both red) |
+
+Both share the same root cause: `Stopped -> Idle` and `EmergencyAbort -> Idle` are legal edges
+in `UavStateMachine`'s transition tables, but nothing in the App layer ever takes them. A
+supporting Core-layer test (`TerminalStates_Stopped_And_EmergencyAbort_CanTransitionBackToIdle`)
+passes, proving the domain layer is not at fault. Full detail in `docs/defects/07-*.md` and
+`docs/defects/08-*.md`, with manual repro in `docs/test-cases/TC-002-*.md` and `TC-003-*.md`.
 
 Two of these (#03, #04) required adding a small, genuinely useful feature first
 (`TelemetryWarningMonitor`, a one-shot reconnect notice) specifically to create the code path the

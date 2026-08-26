@@ -8,22 +8,24 @@ Three layers, each testing a different kind of risk, each with its own tooling:
 
 ```
         ┌─────────────────────────────┐
-        │  UI Automation (FlaUI)      │  12 tests — the real, built exe, real UI Automation
+        │  UI Automation (FlaUI)      │  14 tests (12 green + 2 known-defect) — real UI Automation
         │  slowest, highest-fidelity  │
         ├─────────────────────────────┤
-        │  App.Tests (xUnit + Moq)    │  39 tests — ViewModels in isolation
+        │  App.Tests (xUnit + Moq)    │  41 tests (39 green + 2 known-defect) — ViewModels in isolation
         │  fast, isolates WPF glue    │
         ├─────────────────────────────┤
-        │  Core.Tests (xUnit)         │  55 tests — pure domain, no WPF, no process
+        │  Core.Tests (xUnit)         │  56 tests (all green) — pure domain, no WPF, no process
         │  fastest, most numerous     │
         └─────────────────────────────┘
 ```
 
-106 tests total. The ratio (55 : 39 : 12, roughly a classic pyramid) is a direct consequence of
-architecture: `UavMissionControl.Core` has no WPF dependency, so every state-transition rule,
-boundary value, and simulation behavior is testable at the cheapest layer. Only genuinely
-UI-specific concerns (does the button visually disable, does the banner actually render) need the
-slow, real-process FlaUI layer.
+111 tests total: 107 green, plus 4 tagged `[Trait("Category","KnownDefect")]` that are
+intentionally red (see 1.4a below — these are permanent regression proof for two documented,
+deliberately-unresolved defects, not accidental failures). The green ratio (56 : 39 : 12,
+roughly a classic pyramid) is a direct consequence of architecture: `UavMissionControl.Core` has
+no WPF dependency, so every state-transition rule, boundary value, and simulation behavior is
+testable at the cheapest layer. Only genuinely UI-specific concerns (does the button visually
+disable, does the banner actually render) need the slow, real-process FlaUI layer.
 
 ### 1.2 Techniques used, and why each one is here
 
@@ -59,6 +61,44 @@ hardest to notice:
   which only ever grows for the life of a session) rather than everywhere — a fixed-size
   telemetry snapshot or a bounded state enum has no analogous risk.
 
+### 1.4a Known, deliberately unresolved defects, and how they stay visible without breaking CI
+
+Two defects (`docs/defects/07-stop-mission-no-idle-transition.md` and
+`docs/defects/08-emergency-abort-banner-persists-after-reconnect.md`) were found by manual
+exploratory testing and are being kept **unfixed on purpose**, specifically to demonstrate that
+"found but not yet fixed" doesn't have to mean "undocumented, untracked, and un-detectable."
+
+Each has a regression test at the App layer and at the UI-automation layer (4 tests total) that
+asserts the **correct** behavior and therefore currently **fails** — a real, executed failure,
+not a `[Fact(Skip = "...")]` placeholder that silently stops running. All four are tagged:
+
+```csharp
+[Fact]
+[Trait("Category", "KnownDefect")]
+public void SomeTest_DEFECT0X() { ... }
+```
+
+This makes both things possible at once, on purpose:
+
+- `dotnet test UavMissionControl.slnx --filter "Category!=KnownDefect"` — the clean, all-green
+  107-test run, used as the CI gate (see `.github/workflows/ci.yml`, both test steps carry this
+  same filter) and as the "does the shippable behavior still work" check during normal
+  development.
+- `dotnet test UavMissionControl.slnx --filter "Category=KnownDefect"` — runs exactly the 4
+  tests that prove the 2 known defects are still present and still automatically detectable.
+
+A supporting Core-layer test
+(`UavStateMachineTests.TerminalStates_Stopped_And_EmergencyAbort_CanTransitionBackToIdle`) is
+**not** tagged `KnownDefect` and always passes — it exists to show the domain layer already
+supports the correct recovery transitions; the gap is entirely in the App layer never taking
+them.
+
+This pattern was chosen over `[Fact(Skip = "...")]` deliberately: a skipped test proves nothing
+each run (it doesn't execute), whereas a red, filtered-out test is still compiled, still
+collected, and still fails for the documented reason every single time someone runs it —
+closer to how a real team would track a triaged-but-not-yet-scheduled bug with a
+"known failing, do not fix yet" regression test than to silencing it.
+
 ### 1.4 What is explicitly out of scope
 
 - **Localization / globalization** — the app is English-only by design; no resource files, no
@@ -82,11 +122,14 @@ outside this repository (this is an independent, original project, not any real 
 ### 2.2 Entry / exit criteria
 
 - **Entry** for any change: solution builds with 0 errors.
-- **Exit** for any change: `dotnet test UavMissionControl.slnx` reports 0 failures across all
-  three test projects, and (for anything touching `App`) a manual or automated UI check confirms
-  the app still launches and the changed area behaves as expected.
-- **Exit for the project as a whole:** all 106 tests green locally *and* in GitHub Actions CI
-  (both jobs) — see `docs/ci-cd.md`.
+- **Exit** for any change: `dotnet test UavMissionControl.slnx --filter "Category!=KnownDefect"`
+  reports 0 failures across all three test projects, and (for anything touching `App`) a manual
+  or automated UI check confirms the app still launches and the changed area behaves as
+  expected. (The 4 `KnownDefect`-tagged tests are expected to keep failing — see 1.4a.)
+- **Exit for the project as a whole:** all 107 non-`KnownDefect` tests green locally *and* in
+  GitHub Actions CI (both jobs) — see `docs/ci-cd.md` — plus the 4 `KnownDefect` tests still
+  failing for their documented reason (a `KnownDefect` test passing unexpectedly means either
+  the defect was accidentally fixed, or the test itself regressed — either way, investigate).
 
 ### 2.3 Test environment / tools
 
@@ -111,9 +154,13 @@ Full rationale for each tool choice is in `docs/decisions.md`.
 | 04 | Reconnect handler leak (duplicate logs) | Minor | P3 | Regression testing |
 | 05 | Pause doesn't stop elapsed timer | Major | P2 | Functional testing (timer-state seam) |
 | 06 | Event log O(n) prepend | Minor | P3 | Performance testing |
+| 07 | Stop Mission never returns to Idle | Major | P2 | Manual exploratory testing |
+| 08 | Emergency Abort banner never clears after reconnect | Major | P2 | Manual exploratory testing |
 
 (Severity = impact if it ships; Priority = how urgently it should be fixed relative to other open
-work. #03 is the only Critical/P1: it's the only defect that crashes the running application.)
+work. #03 is the only Critical/P1: it's the only defect that crashes the running application.
+#07 and #08 are the only two **Status: deliberately unresolved** — see 1.4a — everything else in
+this table was found, fixed, and has regression coverage that passes.)
 
 Full repro/root-cause/fix detail for each is in `docs/defects/`.
 

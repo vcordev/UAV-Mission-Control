@@ -47,6 +47,33 @@ public class WarningsBannerViewModelTests
         banner.IsEmergencyAbort.ShouldBeTrue();
     }
 
+    [Fact]
+    [Trait("Category", "KnownDefect")]
+    public void IsEmergencyAbort_ShouldClear_AfterReconnecting_DEFECT08()
+    {
+        // KNOWN DEFECT - see docs/defects/08-emergency-abort-banner-persists-after-reconnect.md.
+        // Deliberately left FAILING: nothing ever transitions MissionState from EmergencyAbort
+        // back to Idle on reconnect, so the red "EMERGENCY ABORT" banner stays lit forever
+        // after the UAV reconnects, even though the connection and signal are fine again.
+        // This test documents and automatically detects that regression; it is intentionally
+        // NOT fixed. Tagged [Trait("Category","KnownDefect")] so
+        // `dotnet test --filter "Category!=KnownDefect"` reproduces the "all green" demo run
+        // without hiding this test's existence.
+        var (banner, _, stateMachine) = Create(battery: 100, signal: 100);
+        stateMachine.TransitionConnection(ConnectionState.Connecting);
+        stateMachine.TransitionConnection(ConnectionState.Connected);
+        stateMachine.TransitionMission(MissionState.Active);
+        stateMachine.TransitionConnection(ConnectionState.Disconnected);
+
+        banner.IsEmergencyAbort.ShouldBeTrue(); // sanity: banner is lit, as expected
+
+        stateMachine.TransitionConnection(ConnectionState.Connecting);
+        stateMachine.TransitionConnection(ConnectionState.Connected);
+
+        // Expected (correct) behavior: reconnecting should clear the stale emergency banner.
+        banner.IsEmergencyAbort.ShouldBeFalse();
+    }
+
     private static (WarningsBannerViewModel Banner, Mock<ITelemetrySimulator> Simulator, UavStateMachine StateMachine) Create(
         double battery, double signal)
     {

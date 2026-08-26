@@ -26,7 +26,11 @@ jobs:
         run: dotnet test tests/UavMissionControl.Core.Tests --no-build -c Release --logger trx --results-directory TestResults
 
       - name: Test - App
-        run: dotnet test tests/UavMissionControl.App.Tests --no-build -c Release --logger trx --results-directory TestResults
+        # --filter excludes the two deliberately-unresolved, intentionally-failing known-defect
+        # regression tests (docs/defects/07, 08) from the CI gate. They still exist, still run
+        # on demand (`dotnet test --filter "Category=KnownDefect"`), and are documented in
+        # docs/test-strategy.md - they are excluded here, not hidden or skipped.
+        run: dotnet test tests/UavMissionControl.App.Tests --no-build -c Release --filter "Category!=KnownDefect" --logger trx --results-directory TestResults
 
       - name: Upload unit test results
         if: always()
@@ -53,7 +57,8 @@ jobs:
         run: dotnet build src/UavMissionControl.App -c Release
 
       - name: UI automation tests
-        run: dotnet test tests/UavMissionControl.UiAutomation.Tests -c Release --logger trx --results-directory TestResults
+        # Same exclusion as the App test step above - see the comment there.
+        run: dotnet test tests/UavMissionControl.UiAutomation.Tests -c Release --filter "Category!=KnownDefect" --logger trx --results-directory TestResults
 
       - name: Upload UI automation test results
         if: always()

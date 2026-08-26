@@ -160,6 +160,28 @@ public class MissionControlViewModelTests
                                             && e.Message.Contains("aborted", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Fact]
+    [Trait("Category", "KnownDefect")]
+    public void StartCommand_ShouldReenable_AfterStop_DEFECT07()
+    {
+        // KNOWN DEFECT - see docs/defects/07-stop-mission-no-idle-transition.md.
+        // Deliberately left FAILING: Stop() transitions MissionState to Stopped but never on
+        // to Idle, so StartCommand's CanExecute guard (MissionState == Idle) never re-opens
+        // and the user can never start a second mission in the same session. This test
+        // documents and automatically detects that regression; it is intentionally NOT fixed.
+        // Tagged [Trait("Category","KnownDefect")] so `dotnet test --filter "Category!=KnownDefect"`
+        // reproduces the clean, all-green demo run without hiding this test's existence.
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+        vm.StartCommand.Execute(null);
+        vm.StopCommand.Execute(null);
+
+        vm.MissionState.ShouldBe(MissionState.Stopped);
+
+        // Expected (correct) behavior: a stopped mission should allow starting a new one.
+        vm.StartCommand.CanExecute(null).ShouldBeTrue();
+    }
+
     private static MissionControlViewModel Create(out UavStateMachine stateMachine)
     {
         stateMachine = new UavStateMachine();

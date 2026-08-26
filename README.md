@@ -10,9 +10,11 @@ not a copy of, or affiliated with, any real company's product.
 
 Connection management, mission control (start/pause/resume/stop), live telemetry (battery,
 signal, GPS, altitude, speed), threshold-based warnings, and an event log — all governed by an
-explicit, unit-tested state machine. Around it: a 106-test automated suite across three layers, 6
-documented and fixed defects, basic performance/reliability testing, and a green GitHub Actions
-CI pipeline.
+explicit, unit-tested state machine. Around it: a 111-test automated suite across three layers, 6
+documented-and-fixed defects, 2 documented-and-deliberately-unresolved defects (kept as permanent,
+intentionally-failing regression proofs — see "Known, unresolved defects" below), basic
+performance/reliability testing, and a green GitHub Actions CI pipeline (the 2 intentional
+failures are excluded from the CI gate by category filter, not hidden — see `docs/test-strategy.md`).
 
 ## Requirements
 
@@ -27,9 +29,31 @@ dotnet run --project src/UavMissionControl.App
 dotnet test UavMissionControl.slnx
 ```
 
-`dotnet test` runs all three test projects: `UavMissionControl.Core.Tests` (55 tests),
-`UavMissionControl.App.Tests` (39 tests), and `UavMissionControl.UiAutomation.Tests` (12 tests —
+`dotnet test` runs all three test projects: `UavMissionControl.Core.Tests` (56 tests, all
+passing), `UavMissionControl.App.Tests` (41 tests — 39 passing + 2 intentionally failing),
+and `UavMissionControl.UiAutomation.Tests` (14 tests — 12 passing + 2 intentionally failing;
 these launch the real built app via FlaUI, so build the App project first if running them alone).
+
+To get the clean "all green" run (matching the CI gate), exclude the known-defect category:
+
+```
+dotnet test UavMissionControl.slnx --filter "Category!=KnownDefect"
+```
+
+To see the 4 intentional failures on demand (proof that the 2 unresolved defects below are
+still detectable):
+
+```
+dotnet test UavMissionControl.slnx --filter "Category=KnownDefect"
+```
+
+## Known, unresolved defects
+
+Two defects (`docs/defects/07`, `docs/defects/08`) are deliberately left unfixed in this
+codebase, each with regression tests at the App and UI-automation layers that are expected to
+FAIL — proof the defect is real and automatically detectable, not just anecdotally observed
+during manual testing. See each defect's doc for full root-cause detail, and
+`docs/test-strategy.md` for how they're excluded from the CI gate without being hidden.
 
 ## Documentation
 
