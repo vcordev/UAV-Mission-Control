@@ -12,4 +12,9 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Lets App.Tests use MainViewModel's internal (test-seam) constructor. -->
+    <InternalsVisibleTo Include="UavMissionControl.App.Tests" />
+  </ItemGroup>
+
 </Project>

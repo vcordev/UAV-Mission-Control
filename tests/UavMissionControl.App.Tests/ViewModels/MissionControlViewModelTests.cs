@@ -1,0 +1,148 @@
+using Shouldly;
+using UavMissionControl.App.ViewModels;
+using UavMissionControl.Core.Domain;
+using UavMissionControl.Core.Logging;
+
+namespace UavMissionControl.App.Tests.ViewModels;
+
+public class MissionControlViewModelTests
+{
+    [Fact]
+    public void Initial_Idle_Disconnected_OnlyNoCommandIsExecutable()
+    {
+        var vm = Create(out _);
+
+        vm.StartCommand.CanExecute(null).ShouldBeFalse();
+        vm.PauseCommand.CanExecute(null).ShouldBeFalse();
+        vm.ResumeCommand.CanExecute(null).ShouldBeFalse();
+        vm.StopCommand.CanExecute(null).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void StartCommand_CanExecute_RequiresBothIdleAndConnected()
+    {
+        var vm = Create(out var stateMachine);
+
+        vm.StartCommand.CanExecute(null).ShouldBeFalse(); // Idle, Disconnected
+
+        Connect(stateMachine);
+        vm.StartCommand.CanExecute(null).ShouldBeTrue(); // Idle, Connected
+    }
+
+    [Fact]
+    public void Start_TransitionsToActive_AndResetsElapsedToZero()
+    {
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+
+        vm.StartCommand.Execute(null);
+
+        vm.MissionState.ShouldBe(MissionState.Active);
+        vm.ElapsedDisplay.ShouldBe("00:00");
+    }
+
+    [Theory]
+    [InlineData(MissionState.Idle, false)]
+    [InlineData(MissionState.Active, true)]
+    [InlineData(MissionState.Paused, true)]
+    [InlineData(MissionState.Stopped, false)]
+    public void StopCommand_CanExecute_OnlyWhenActiveOrPaused(MissionState state, bool expected)
+    {
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+        DriveTo(vm, state);
+
+        vm.StopCommand.CanExecute(null).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void StopCommand_CanExecute_IsFalse_WhenConnectedButMissionIdle()
+    {
+        // The scenario the "defense-in-depth" defect (see docs/defects) breaks: connected,
+        // but no mission ever started — Stop must stay disabled or clicking it throws from Core.
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+
+        vm.MissionState.ShouldBe(MissionState.Idle);
+        vm.StopCommand.CanExecute(null).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void PauseThenResume_ReturnsToActive()
+    {
+        var vm = Create(out var stateMachine);
+        Connect(stateMachine);
+        vm.StartCommand.Execute(null);
+
+        vm.PauseCommand.Execute(null);
+        vm.MissionState.ShouldBe(MissionState.Paused);
+
+        vm.ResumeCommand.Execute(null);
+        vm.MissionState.ShouldBe(MissionState.Active);
+    }
+
+    [Fact]
+    public void Stop_TransitionsToStopped_AndLogsElapsed()
+    {
+        var eventLog = new EventLog();
+        var stateMachine = new UavStateMachine();
+        var vm = new MissionControlViewModel(stateMachine, eventLog);
+        Connect(stateMachine);
+        vm.StartCommand.Execute(null);
+
+        vm.StopCommand.Execute(null);
+
+        vm.MissionState.ShouldBe(MissionState.Stopped);
+        eventLog.Entries.Select(e => e.Message).ShouldContain(m => m.StartsWith("Mission stopped."));
+    }
+
+    [Fact]
+    public void ConnectionLost_WhileActive_ForcesEmergencyAbort_AndLogsIt()
+    {
+        var eventLog = new EventLog();
+        var stateMachine = new UavStateMachine();
+        var vm = new MissionControlViewModel(stateMachine, eventLog);
+        Connect(stateMachine);
+        vm.StartCommand.Execute(null);
+
+        stateMachine.TransitionConnection(ConnectionState.Disconnected);
+
+        vm.MissionState.ShouldBe(MissionState.EmergencyAbort);
+        eventLog.Entries.ShouldContain(e => e.Severity == LogSeverity.Error
+                                            && e.Message.Contains("aborted", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static MissionControlViewModel Create(out UavStateMachine stateMachine)
+    {
+        stateMachine = new UavStateMachine();
+        return new MissionControlViewModel(stateMachine, new EventLog());
+    }
+
+    private static void Connect(UavStateMachine stateMachine)
+    {
+        stateMachine.TransitionConnection(ConnectionState.Connecting);
+        stateMachine.TransitionConnection(ConnectionState.Connected);
+    }
+
+    private static void DriveTo(MissionControlViewModel vm, MissionState state)
+    {
+        if (state == MissionState.Idle)
+        {
+            return;
+        }
+
+        vm.StartCommand.Execute(null);
+        if (state == MissionState.Active)
+        {
+            return;
+        }
+
+        if (state == MissionState.Paused)
+        {
+            vm.PauseCommand.Execute(null);
+            return;
+        }
+
+        vm.StopCommand.Execute(null);
+    }
+}

@@ -40,7 +40,9 @@ public sealed class ConnectionPanelViewModel : ViewModelBase
 
     public RelayCommand DisconnectCommand { get; }
 
-    private async Task ConnectAsync()
+    /// <summary>Public (not just wrapped in <see cref="ConnectCommand"/>) so tests can await
+    /// the connect flow deterministically instead of racing an async-void command execution.</summary>
+    public async Task ConnectAsync()
     {
         _stateMachine.TransitionConnection(ConnectionState.Connecting);
         _eventLog.Add(LogSeverity.Info, "Connecting to UAV...");
