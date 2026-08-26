@@ -151,7 +151,7 @@ explain.
 
 ## D8. Push to a real, public GitHub remote
 
-**What:** The repository is pushed to `https://github.com/vcordev/qa-challenge`, public, with
+**What:** The repository is pushed to `https://github.com/vcordev/UAV-Mission-Control`, public, with
 GitHub Actions CI actually executing (not just an authored-but-unrun workflow file).
 
 **Why:** A real green Actions run is strictly more useful to reference in an interview than an

@@ -2,7 +2,7 @@
 
 ## Where it runs
 
-`https://github.com/vcordev/qa-challenge`, branch `main`, workflow at
+`https://github.com/vcordev/UAV-Mission-Control`, branch `main`, workflow at
 `.github/workflows/ci.yml`. Confirmed green in the repository's Actions tab after the Phase 8
 push.
 

@@ -70,4 +70,4 @@ during manual testing. See each defect's doc for full root-cause detail, and
 
 ## CI
 
-[![CI](https://github.com/vcordev/qa-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/vcordev/qa-challenge/actions/workflows/ci.yml)
+[![CI](https://github.com/vcordev/UAV-Mission-Control/actions/workflows/ci.yml/badge.svg)](https://github.com/vcordev/UAV-Mission-Control/actions/workflows/ci.yml)

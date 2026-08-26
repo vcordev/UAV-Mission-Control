@@ -93,7 +93,7 @@ load testing — this is a single-user desktop app): `docs/performance-report.md
 ## CI/CD
 
 GitHub Actions, two jobs on `windows-latest`, both required (no allow-failure). Pushed to
-`https://github.com/vcordev/qa-challenge` and confirmed green in the Actions tab. One real
+`https://github.com/vcordev/UAV-Mission-Control` and confirmed green in the Actions tab. One real
 concurrency gotcha (xUnit's default test-class parallelization colliding with UI Automation's COM
 interop) was found and fixed with a one-line, standard, documented fix. Full detail:
 `docs/ci-cd.md`.
