@@ -10,6 +10,7 @@ public sealed class MainViewModel : ViewModelBase
     private readonly UavStateMachine _stateMachine;
     private readonly ITelemetrySimulator _simulator;
     private readonly ScenarioInjector _scenarioInjector;
+    private readonly TelemetryWarningMonitor _warningMonitor;
     private readonly IEventLog _eventLog;
 
     public MainViewModel() : this(new UavStateMachine(), new EventLog(), null, new WpfDispatcher())
@@ -26,6 +27,7 @@ public sealed class MainViewModel : ViewModelBase
         _eventLog = eventLog;
         _simulator = simulator ?? new TelemetrySimulator(() => stateMachine.MissionState);
         _scenarioInjector = new ScenarioInjector(_simulator);
+        _warningMonitor = new TelemetryWarningMonitor(_simulator, eventLog);
 
         ConnectionPanel = new ConnectionPanelViewModel(stateMachine, eventLog);
         MissionControl = new MissionControlViewModel(stateMachine, eventLog);
